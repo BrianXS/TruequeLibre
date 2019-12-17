@@ -5,11 +5,6 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <Folder Include="Resources\Incoming" />
-      <Folder Include="Resources\Outgoing" />
-    </ItemGroup>
-
-    <ItemGroup>
       <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="7.0.0" />
       <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="3.1.0" />
       <PackageReference Include="Microsoft.AspNetCore.Identity" Version="2.2.0" />

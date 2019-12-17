@@ -17,14 +17,16 @@ namespace API
     {
         public static void Main(string[] args)
         {
-            CreateHostBuilder(args).Build().Run();
+            var host = CreateHostBuilder(args).Build();
+            InitializeDb(host);
+            host.Run();
         }
 
         public static IHostBuilder CreateHostBuilder(string[] args) =>
             Host.CreateDefaultBuilder(args)
                 .ConfigureWebHostDefaults(webBuilder => { webBuilder.UseStartup<Startup>(); });
 
-        private static void IntializeDb(IHost host)
+        private static void InitializeDb(IHost host)
         {
             using var scope = host.Services.CreateScope();
             var services = scope.ServiceProvider;

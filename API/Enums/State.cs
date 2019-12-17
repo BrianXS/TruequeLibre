@@ -1,0 +1,38 @@
+namespace API.Enums
+{
+    public enum State
+    {
+        Aguascalientes,
+        BajaCalifornia,
+        BajaCaliforniaSur,
+        Chihuahua,
+        Colima,
+        Campeche,
+        Coahuila,
+        Chiapas,
+        FederalDistrict,
+        Durango,
+        Guerrero,
+        Guanajuato,
+        Hidalgo,
+        Jalisco,
+        MéxicoState,
+        Michoacán,
+        Morelos,
+        Nayarit,
+        NuevoLeon,
+        Oaxaca,
+        Puebla,
+        Querétaro,
+        QuintanaRoo,
+        Sinaloa,
+        SanLuisPotosi,
+        Sonora,
+        Tabasco,
+        Tlaxcala,
+        Tamaulipas,
+        Veracruz,
+        Yucatán,
+        Zacatecas
+    }
+}

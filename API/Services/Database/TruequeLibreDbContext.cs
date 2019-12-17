@@ -10,5 +10,8 @@ namespace API.Services.Database
         {
             
         }
+
+        public DbSet<Address> Addresses { get; set; }
+        public DbSet<City> Cities { get; set; }
     }
 }
