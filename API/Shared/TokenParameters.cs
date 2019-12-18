@@ -17,8 +17,8 @@ namespace API.Shared
                 ValidateLifetime = true,
                 ValidateIssuerSigningKey = true,
                 
-                ValidAudience = "truequelibre",
-                ValidIssuer = "truequelibre",
+                ValidAudience = Constants.General.AppName,
+                ValidIssuer = Constants.General.AppName,
                 IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Constants.Token.Key)),
                 
                 ClockSkew = TimeSpan.Zero
