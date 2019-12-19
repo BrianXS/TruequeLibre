@@ -6,6 +6,7 @@ using API.Constants;
 using API.Entities;
 using API.Resources.Incoming;
 using API.Resources.Outgoing;
+using API.Services.Email;
 using API.Utils;
 using AutoMapper;
 using Microsoft.AspNetCore.Identity;
@@ -20,18 +21,21 @@ namespace API.Controllers
     {
         private readonly UserManager<User> _userManager;
         private readonly SignInManager<User> _signInManager;
+        private readonly IEmailSender _emailSender;
         private readonly IMapper _mapper;
 
         public SecurityController(UserManager<User> userManager, 
                                   SignInManager<User> signInManager,
+                                  IEmailSender emailSender,
                                   IMapper mapper)
         {
             _userManager = userManager;
             _signInManager = signInManager;
+            _emailSender = emailSender;
             _mapper = mapper;
         }
 
-        [HttpPost("login")]
+        [HttpPost("Login")]
         public async Task<ActionResult<LoginResponse>> Login([FromBody] LoginRequest loginRequest)
         {
             var result = await _signInManager.PasswordSignInAsync(loginRequest.UserName,
@@ -64,7 +68,7 @@ namespace API.Controllers
             return Unauthorized(new LoginResponse());
         }
         
-        [HttpPost("refresh")]
+        [HttpPost("Refresh")]
         public async Task<ActionResult<RefreshTokenResponse>> RefreshToken([FromBody] RefreshTokenRequest refreshToken)
         {
             var principal = TokenUtils.GetClaims(refreshToken.OldToken);
@@ -94,10 +98,10 @@ namespace API.Controllers
             return Ok(response);
         }
         
-        [HttpPost("register")]
+        [HttpPost("Register")]
         public async Task<ActionResult<RegisterResponse>> Register([FromBody] RegisterRequest registerRequest)
         {
-            if (ModelState.IsValid)
+            if(ModelState.IsValid)
             {
                 var user = _mapper.Map<User>(registerRequest);
 
@@ -106,6 +110,45 @@ namespace API.Controllers
             }
             
             return BadRequest(new RegisterResponse());
+        }
+
+
+        [HttpPost("RecoverPassword")]
+        public async Task<IActionResult> RecoverPassword([FromBody] RecoverPasswordRequest recoverPasswordRequest)
+        {
+            var user = await _userManager.FindByNameAsync(recoverPasswordRequest.UserName);
+            if (user != null)
+            {
+                var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+
+                await _emailSender.SendEmailAsync(Constants.Email.OfficialEmailAddress, 
+                    user.Email, "Reset Password", token, token);
+                
+                return Ok();
+            }
+            
+            return NotFound(new { Message = "User Not Found" });
+        }
+        
+        [HttpPost("ChangePassword")]
+        public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequest changePasswordRequest)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest();
+
+            var user = await _userManager.FindByNameAsync(changePasswordRequest.UserName);
+            
+            if (user == null)
+                return BadRequest();
+        
+            var changePasswordResult = await _userManager.ResetPasswordAsync(user, 
+                changePasswordRequest.Token, 
+                changePasswordRequest.Password);
+
+            if (changePasswordResult.Succeeded)
+                return Ok();
+
+            return Unauthorized();
         }
     }
 }
