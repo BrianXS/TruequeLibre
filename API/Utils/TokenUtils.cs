@@ -15,7 +15,7 @@ namespace API.Utils
         {
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Constants.Token.Key));
             var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-            var expiration = DateTime.Now.AddMinutes(1);
+            var expiration = DateTime.Now.AddMinutes(60);
 
             return new JwtSecurityTokenHandler()
                 .WriteToken(GetToken(Constants.General.AppName, Constants.General.AppName, 

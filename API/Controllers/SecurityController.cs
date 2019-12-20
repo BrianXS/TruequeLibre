@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
@@ -45,20 +46,19 @@ namespace API.Controllers
             {
                 var userInfo = await _userManager.FindByNameAsync(loginRequest.UserName);
                 var userRoles = await _userManager.GetRolesAsync(userInfo);
-                
+
                 userInfo.RefreshToken = TokenUtils.RefreshToken();
                 await _userManager.UpdateAsync(userInfo);
-
-                var claims = new Claim[]
-                {
-                    new Claim(JwtRegisteredClaimNames.UniqueName, userInfo.UserName),
-                    new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                    new Claim(ClaimTypes.Role, userRoles[0]),
-                };
                 
+
+                var claims = new List<Claim>();
+                claims.Add(new Claim(JwtRegisteredClaimNames.UniqueName, userInfo.UserName));
+                claims.Add(new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()));
+                claims.AddRange(userRoles.Select(role => new Claim(ClaimTypes.Role, role)));
+
                 var response = new LoginResponse
                 {
-                    Token = TokenUtils.TokenGenerator(claims),
+                    Token = TokenUtils.TokenGenerator(claims.ToArray()),
                     RefreshToken = userInfo.RefreshToken
                 };
 
