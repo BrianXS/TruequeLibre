@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
-using API.Constants;
 using API.Entities;
+using API.Repositories.Interfaces;
 using API.Resources.Incoming;
 using API.Resources.Outgoing;
 using API.Services.Email;
@@ -20,17 +20,17 @@ namespace API.Controllers
     [Route("[controller]")]
     public class SecurityController : ControllerBase
     {
-        private readonly UserManager<User> _userManager;
+        private readonly IUserRepository _userRepository;
         private readonly SignInManager<User> _signInManager;
         private readonly IEmailSender _emailSender;
         private readonly IMapper _mapper;
 
-        public SecurityController(UserManager<User> userManager, 
+        public SecurityController(IUserRepository userRepository,
                                   SignInManager<User> signInManager,
                                   IEmailSender emailSender,
                                   IMapper mapper)
         {
-            _userManager = userManager;
+            _userRepository = userRepository;
             _signInManager = signInManager;
             _emailSender = emailSender;
             _mapper = mapper;
@@ -44,16 +44,16 @@ namespace API.Controllers
 
             if (result.Succeeded)
             {
-                var userInfo = await _userManager.FindByNameAsync(loginRequest.UserName);
-                var userRoles = await _userManager.GetRolesAsync(userInfo);
+                var userInfo = await _userRepository.FindUserByName(loginRequest.UserName);
+                var userRoles = await _userRepository.GetUserRoles(userInfo);
 
-                userInfo.RefreshToken = TokenUtils.RefreshToken();
-                await _userManager.UpdateAsync(userInfo);
-                
+                await _userRepository.UpdateRefreshToken(userInfo, TokenUtils.RefreshToken());
 
-                var claims = new List<Claim>();
-                claims.Add(new Claim(JwtRegisteredClaimNames.UniqueName, userInfo.UserName));
-                claims.Add(new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()));
+                var claims = new List<Claim>
+                {
+                    new Claim(JwtRegisteredClaimNames.UniqueName, userInfo.UserName),
+                    new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+                };
                 claims.AddRange(userRoles.Select(role => new Claim(ClaimTypes.Role, role)));
 
                 var response = new LoginResponse
@@ -73,16 +73,15 @@ namespace API.Controllers
         {
             var principal = TokenUtils.GetClaims(refreshToken.OldToken);
             var userName = principal.Identity.Name;
-            var userInfo = await _userManager.FindByNameAsync(userName);
+            var userInfo = await _userRepository.FindUserByName(userName);
             
             if(string.IsNullOrWhiteSpace(userName) || userInfo == null)
                 return BadRequest(new RefreshTokenResponse());
 
-            userInfo.RefreshToken = TokenUtils.RefreshToken();
-            await _userManager.UpdateAsync(userInfo);
+            await _userRepository.UpdateRefreshToken(userInfo, TokenUtils.RefreshToken());
             
-            var userRoles = await _userManager.GetRolesAsync(userInfo);
-            var claims = new Claim[]
+            var userRoles = await _userRepository.GetUserRoles(userInfo);
+            var claims = new[]
             {
                 new Claim(JwtRegisteredClaimNames.UniqueName, userInfo.UserName),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
@@ -105,7 +104,7 @@ namespace API.Controllers
             {
                 var user = _mapper.Map<User>(registerRequest);
 
-                await _userManager.CreateAsync(user, registerRequest.Password);
+                await _userRepository.CreateUser(user, registerRequest.Password);
                 return Ok(new RegisterResponse { Message = "User Created Successfully" });
             }
             
@@ -116,10 +115,10 @@ namespace API.Controllers
         [HttpPost("RecoverPassword")]
         public async Task<IActionResult> RecoverPassword([FromBody] RecoverPasswordRequest recoverPasswordRequest)
         {
-            var user = await _userManager.FindByNameAsync(recoverPasswordRequest.UserName);
+            var user = await _userRepository.FindUserByName(recoverPasswordRequest.UserName);
             if (user != null)
             {
-                var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+                var token = await _userRepository.GeneratePasswordResetTokenAsync(user);
 
                 await _emailSender.SendEmailAsync(Constants.Email.OfficialEmailAddress, 
                     user.Email, "Reset Password", token, token);
@@ -136,12 +135,12 @@ namespace API.Controllers
             if (!ModelState.IsValid)
                 return BadRequest();
 
-            var user = await _userManager.FindByNameAsync(changePasswordRequest.UserName);
+            var user = await _userRepository.FindUserByName(changePasswordRequest.UserName);
             
             if (user == null)
                 return BadRequest();
         
-            var changePasswordResult = await _userManager.ResetPasswordAsync(user, 
+            var changePasswordResult = await _userRepository.ResetPasswordAsync(user, 
                 changePasswordRequest.Token, 
                 changePasswordRequest.Password);
 

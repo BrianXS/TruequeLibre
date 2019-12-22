@@ -7,7 +7,10 @@ namespace API.Entities
     {
         public string Names { get; set; }
         public string LastNames { get; set; }
+        public string ProfilePicturePath { get; set; }
         public string RefreshToken { get; set; }
+
         public List<Address> Addresses { get; set; }
+        public List<Product> Products { get; set; }
     }
 }

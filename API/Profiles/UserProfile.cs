@@ -10,6 +10,12 @@ namespace API.Profiles
         public UserProfile()
         {
             CreateMap<RegisterRequest, User>();
+            CreateMap<User, EditUserResponse>();
+            
+            CreateMap<User, ProfileInfoResponse>()
+                .ForMember(destination => destination.FullName,
+                    source => 
+                        source.MapFrom(user => $"{user.Names} {user.LastNames}"));
         }
     }
 }

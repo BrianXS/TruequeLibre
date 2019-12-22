@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using API.Entities;
+using API.Repositories.Implementations;
+using API.Repositories.Interfaces;
 using API.Services.Database;
 using API.Services.Email;
 using AutoMapper;
@@ -56,6 +58,9 @@ namespace API
             services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
             services.AddTransient<IEmailSender, EmailSender>();
             services.AddControllers();
+            
+            //Repositories
+            services.AddScoped<IUserRepository, UserRepository>();
         }
         
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
