@@ -1,17 +1,22 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
+using System.Runtime.InteropServices;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using API.Entities;
 using API.Repositories.Implementations;
 using API.Repositories.Interfaces;
 using API.Resources.Incoming;
 using API.Resources.Outgoing;
+using API.Utils;
 using AutoMapper;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.JsonWebTokens;
 
 namespace API.Controllers
 {
@@ -37,13 +42,13 @@ namespace API.Controllers
             if (userInfo != null)
             {
                 var response = _mapper.Map<ProfileInfoResponse>(userInfo);
-                return Ok();
+                return Ok(response);
             }
 
             return Unauthorized();
         }
 
-        [HttpGet("{id}")]
+        [HttpGet("{id}"), AllowAnonymous]
         public async Task<ActionResult<ProfileInfoResponse>> GetProfile(int id)
         {
             var userInfo = await _userRepository.FindUserById(id);
@@ -57,7 +62,7 @@ namespace API.Controllers
             return NotFound(new ProfileInfoResponse());
         }
 
-        [HttpGet("Edit")]
+        [HttpGet("Update")]
         public async Task<ActionResult<EditUserResponse>> GetMyProfileInfo()
         {
             var userName = HttpContext.User.Identity.Name;
@@ -70,57 +75,98 @@ namespace API.Controllers
             return Unauthorized();
         }
 
-        [HttpGet("Edit/Username")]
-        public async Task<IActionResult> EditUserName(EditUserUserNameRequest request)
+        [HttpPost("Update/Username")]
+        public async Task<ActionResult<UpdateUserUserNameResponse>> UpdateUserName(UpdateUserUserNameRequest request)
         {
             var userName = HttpContext.User.Identity.Name;
             var userInfo = await _userRepository.FindUserByName(userName);
             if (userInfo != null)
             {
                 await _userRepository.UpdateUserName(userInfo, request.UserName);
-                return Ok(_mapper.Map<EditUserResponse>(userInfo));
+                var roles = await _userRepository.GetUserRoles(userInfo);
+                
+                var claims = new List<Claim>
+                {
+                    new Claim(JwtRegisteredClaimNames.UniqueName, userInfo.UserName),
+                    new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+                };
+                claims.AddRange(roles.Select(role => new Claim(ClaimTypes.Role, role)));
+                
+                var response = new UpdateUserUserNameResponse
+                {
+                  Token  = TokenUtils.TokenGenerator(claims.ToArray()),
+                  RefreshToken = userInfo.RefreshToken
+                };
+                
+                return Ok(response);
             }
             
             return Unauthorized();
         }
         
-        [HttpGet("Edit/Email")]
-        public async Task<IActionResult> EditEmail(EditUserEmailRequest request)
+        [HttpPost("Update/Email")]
+        public async Task<IActionResult> EditEmail(UpdateUserEmailRequest request)
         {
+            if (!ModelState.IsValid) return BadRequest();
+            
             var userName = HttpContext.User.Identity.Name;
             var userInfo = await _userRepository.FindUserByName(userName);
             if (userInfo != null)
             {
                 await _userRepository.UpdateEmail(userInfo, request.Email);
-                return Ok(_mapper.Map<EditUserResponse>(userInfo));
+                return Ok();
             }
             
             return Unauthorized();
         }
         
-        [HttpGet("Edit/Name")]
-        public async Task<IActionResult> EditName(EditUserNameRequest request)
+        [HttpPost("Update/Name")]
+        public async Task<IActionResult> UpdateName(UpdateUserNameRequest request)
         {
+            if (!ModelState.IsValid) return BadRequest();
+            
             var userName = HttpContext.User.Identity.Name;
             var userInfo = await _userRepository.FindUserByName(userName);
             if (userInfo != null)
             {
                 await _userRepository.UpdateName(userInfo, request.Names, request.LastNames);
-                return Ok(_mapper.Map<EditUserResponse>(userInfo));
+                return Ok();
             }
             
             return Unauthorized();
         }
         
-        [HttpGet("Edit/PhoneNumber")]
-        public async Task<IActionResult> EditPhoneNumber(EditUserPhoneNumberRequest request)
+        [HttpPost("Update/PhoneNumber")]
+        public async Task<IActionResult> UpdatePhoneNumber(UpdateUserPhoneNumberRequest request)
         {
+            if (!ModelState.IsValid) return BadRequest();
+            
             var userName = HttpContext.User.Identity.Name;
             var userInfo = await _userRepository.FindUserByName(userName);
             if (userInfo != null)
             {
                 await _userRepository.UpdateUserPhone(userInfo, request.PhoneNumber);
-                return Ok(_mapper.Map<EditUserResponse>(userInfo));
+                return Ok();
+            }
+            
+            return Unauthorized();
+        }
+
+        [HttpPost("Update/Password")]
+        public async Task<IActionResult> UpdatePassword(UpdateUserPasswordRequest request)
+        {
+            if (!ModelState.IsValid) return BadRequest();
+            
+            var userName = HttpContext.User.Identity.Name;
+            var userInfo = await _userRepository.FindUserByName(userName);
+            if (userInfo != null)
+            {
+                var result = await _userRepository.UpdatePassword(userInfo, request.OldPassword, request.NewPassword);
+                
+                if(result) 
+                    return Ok();
+                
+                return UnprocessableEntity();
             }
             
             return Unauthorized();

@@ -11,7 +11,7 @@ namespace API.Repositories.Interfaces
         Task<User> FindUserById(int id);
         Task UpdateName(User user, string names, string lastnames);
         Task UpdateEmail(User user, string email);
-        Task UpdatePassword(User user, string oldPassword, string newPassword);
+        Task<bool> UpdatePassword(User user, string oldPassword, string newPassword);
         Task UpdateUserName(User user, string userName);
         Task UpdateUserPhone(User user, string Phone);
         Task UpdateRefreshToken(User user, string refreshToken);

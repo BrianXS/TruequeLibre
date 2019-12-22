@@ -46,6 +46,9 @@ namespace API
 
                 options.Password.RequiredUniqueChars = 0;
                 options.Password.RequiredLength = 5;
+
+                options.User.RequireUniqueEmail = true;
+                options.User.AllowedUserNameCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
             }).AddEntityFrameworkStores<TruequeLibreDbContext>().AddDefaultTokenProviders();
 
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)

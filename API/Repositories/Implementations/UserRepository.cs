@@ -27,8 +27,8 @@ namespace API.Repositories.Implementations
 
         public async Task UpdateName(User user, string names, string lastnames)
         {
-            user.Names = names;
-            user.LastNames = lastnames;
+            user.Names = string.IsNullOrWhiteSpace(names.Trim()) ? user.Names : names;
+            user.LastNames = string.IsNullOrWhiteSpace(lastnames.Trim()) ? user.LastNames : lastnames;
             await _userManager.UpdateAsync(user);
         }
 
@@ -38,9 +38,10 @@ namespace API.Repositories.Implementations
             await _userManager.UpdateAsync(user);
         }
 
-        public async Task UpdatePassword(User user, string oldPassword, string newPassword)
+        public async Task<bool> UpdatePassword(User user, string oldPassword, string newPassword)
         {
-            await _userManager.ChangePasswordAsync(user, oldPassword, newPassword);
+            var result = await _userManager.ChangePasswordAsync(user, oldPassword, newPassword);
+            return result.Succeeded;
         }
 
         public async Task UpdateUserName(User user, string userName)
