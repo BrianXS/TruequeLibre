@@ -26,22 +26,29 @@ namespace API.Controllers
     public class AccountController : ControllerBase
     {
         private readonly IUserRepository _userRepository;
+        private readonly IAddressRepository _addressRepository;
         private readonly IMapper _mapper;
 
-        public AccountController(IUserRepository userRepository, IMapper mapper)
+        public AccountController(IUserRepository userRepository,
+                                 IAddressRepository addressRepository,
+                                 IMapper mapper)
         {
             _userRepository = userRepository;
+            _addressRepository = addressRepository;
             _mapper = mapper;
         }
 
         [HttpGet]
-        public async Task<ActionResult<ProfileInfoResponse>> GetMyProfile()
+        public async Task<ActionResult<GetProfileResponse>> GetMyProfile()
         {
             var userName = HttpContext.User.Identity.Name;
             var userInfo = await _userRepository.FindUserByName(userName);
             if (userInfo != null)
             {
-                var response = _mapper.Map<ProfileInfoResponse>(userInfo);
+                var response = _mapper.Map<GetProfileResponse>(userInfo);
+                response.Products = _mapper.Map<List<GetProfileResponse.ProductInfo>>(userInfo.Products);
+                response.Addresses = _mapper
+                    .Map<List<GetProfileResponse.AddressInfo>>(_addressRepository.GetUserAddresses(userInfo.Id));
                 return Ok(response);
             }
 
@@ -49,17 +56,18 @@ namespace API.Controllers
         }
 
         [HttpGet("{id}"), AllowAnonymous]
-        public async Task<ActionResult<ProfileInfoResponse>> GetProfile(int id)
+        public async Task<ActionResult<GetProfileResponse>> GetProfile(int id)
         {
             var userInfo = await _userRepository.FindUserById(id);
+            
             if (userInfo != null)
             {
-                var response = _mapper.Map<ProfileInfoResponse>(userInfo);
-                response.Products = _mapper.Map<List<ProfileInfoResponse.ProductInfo>>(userInfo.Products);
+                var response = _mapper.Map<GetProfileResponse>(userInfo);
+                response.Products = _mapper.Map<List<GetProfileResponse.ProductInfo>>(userInfo.Products);
                 return Ok(response);
             }
             
-            return NotFound(new ProfileInfoResponse());
+            return NotFound(new GetProfileResponse());
         }
 
         [HttpGet("Update")]

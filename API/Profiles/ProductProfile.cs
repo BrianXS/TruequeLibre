@@ -9,7 +9,7 @@ namespace API.Profiles
     {
         public ProductProfile()
         {
-            CreateMap<Product, ProfileInfoResponse.ProductInfo>()
+            CreateMap<Product, GetProfileResponse.ProductInfo>()
                 .ForMember(destination => destination.ProductPictures,
                     source => 
                         source.MapFrom(src => 

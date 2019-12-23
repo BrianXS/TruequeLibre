@@ -64,6 +64,7 @@ namespace API
             
             //Repositories
             services.AddScoped<IUserRepository, UserRepository>();
+            services.AddScoped<IAddressRepository, AddressRepository>();
         }
         
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)

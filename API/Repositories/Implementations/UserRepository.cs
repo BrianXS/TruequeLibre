@@ -1,7 +1,10 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using API.Entities;
 using API.Repositories.Interfaces;
+using API.Resources.Outgoing;
+using API.Services.Database;
 using Microsoft.AspNetCore.Identity;
 
 namespace API.Repositories.Implementations
@@ -9,10 +12,13 @@ namespace API.Repositories.Implementations
     public class UserRepository : IUserRepository
     {
         private readonly UserManager<User> _userManager;
+        private readonly TruequeLibreDbContext _dbContext;
 
-        public UserRepository(UserManager<User> userManager)
+        public UserRepository(UserManager<User> userManager, 
+                              TruequeLibreDbContext dbContext)
         {
             _userManager = userManager;
+            _dbContext = dbContext;
         }
         
         public async Task<User> FindUserByName(string userName)
