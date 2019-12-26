@@ -13,12 +13,18 @@ namespace API.Repositories.Implementations
     {
         private readonly UserManager<User> _userManager;
         private readonly TruequeLibreDbContext _dbContext;
+        private readonly IAddressRepository _addressRepository;
+        private readonly IProductRepository _productRepository;
 
-        public UserRepository(UserManager<User> userManager, 
-                              TruequeLibreDbContext dbContext)
+        public UserRepository(UserManager<User> userManager,
+                              TruequeLibreDbContext dbContext,
+                              IAddressRepository addressRepository,
+                              IProductRepository productRepository)
         {
             _userManager = userManager;
             _dbContext = dbContext;
+            _addressRepository = addressRepository;
+            _productRepository = productRepository;
         }
         
         public async Task<User> FindUserByName(string userName)
@@ -28,7 +34,11 @@ namespace API.Repositories.Implementations
 
         public async Task<User> FindUserById(int id)
         {
-            return await _userManager.FindByIdAsync(id.ToString());
+            var result = await _userManager.FindByIdAsync(id.ToString());
+            result.Addresses = _addressRepository.GetUserAddresses(result.Id);
+            result.Products = _productRepository.GetUserProducts(result.Id);
+            
+            return result;
         }
 
         public async Task UpdateName(User user, string names, string lastnames)

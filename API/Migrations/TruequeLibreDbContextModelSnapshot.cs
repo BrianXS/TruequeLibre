@@ -97,7 +97,7 @@ namespace API.Migrations
 
                     b.HasIndex("ProductId");
 
-                    b.ToTable("Detail");
+                    b.ToTable("Details");
                 });
 
             modelBuilder.Entity("API.Entities.PictureInfo", b =>
@@ -106,9 +106,6 @@ namespace API.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int")
                         .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
-
-                    b.Property<string>("FileLocation")
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("FileName")
                         .HasColumnType("nvarchar(max)");
@@ -120,7 +117,7 @@ namespace API.Migrations
 
                     b.HasIndex("ProductId");
 
-                    b.ToTable("PictureInfo");
+                    b.ToTable("Pictures");
                 });
 
             modelBuilder.Entity("API.Entities.Product", b =>
@@ -143,7 +140,7 @@ namespace API.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Product");
+                    b.ToTable("Products");
                 });
 
             modelBuilder.Entity("API.Entities.Role", b =>

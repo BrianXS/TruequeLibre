@@ -80,7 +80,7 @@ namespace API.Controllers
             return Ok();
         }
         
-        [HttpGet("Delete/{id}")]
+        [HttpDelete("Delete/{id}")]
         public async Task<IActionResult> DeleteAddress(int id)
         {
             var userName = HttpContext.User.Identity.Name;

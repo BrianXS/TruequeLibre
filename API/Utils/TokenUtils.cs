@@ -9,7 +9,7 @@ using Microsoft.IdentityModel.Tokens;
 
 namespace API.Utils
 {
-    public class TokenUtils
+    public static class TokenUtils
     {
         public static string TokenGenerator(Claim[] claims)
         {

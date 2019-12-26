@@ -6,7 +6,6 @@ using System.Runtime.InteropServices;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using API.Entities;
-using API.Repositories.Implementations;
 using API.Repositories.Interfaces;
 using API.Resources.Incoming;
 using API.Resources.Outgoing;
@@ -46,9 +45,6 @@ namespace API.Controllers
             if (userInfo != null)
             {
                 var response = _mapper.Map<GetProfileResponse>(userInfo);
-                response.Products = _mapper.Map<List<GetProfileResponse.ProductInfo>>(userInfo.Products);
-                response.Addresses = _mapper
-                    .Map<List<GetProfileResponse.AddressInfo>>(_addressRepository.GetUserAddresses(userInfo.Id));
                 return Ok(response);
             }
 
@@ -63,7 +59,6 @@ namespace API.Controllers
             if (userInfo != null)
             {
                 var response = _mapper.Map<GetProfileResponse>(userInfo);
-                response.Products = _mapper.Map<List<GetProfileResponse.ProductInfo>>(userInfo.Products);
                 return Ok(response);
             }
             

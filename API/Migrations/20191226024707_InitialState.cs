@@ -173,7 +173,7 @@ namespace API.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Product",
+                name: "Products",
                 columns: table => new
                 {
                     Id = table.Column<int>(nullable: false)
@@ -184,9 +184,9 @@ namespace API.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Product", x => x.Id);
+                    table.PrimaryKey("PK_Products", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Product_AspNetUsers_UserId",
+                        name: "FK_Products_AspNetUsers_UserId",
                         column: x => x.UserId,
                         principalTable: "AspNetUsers",
                         principalColumn: "Id",
@@ -226,7 +226,7 @@ namespace API.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Detail",
+                name: "Details",
                 columns: table => new
                 {
                     Id = table.Column<int>(nullable: false)
@@ -237,32 +237,31 @@ namespace API.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Detail", x => x.Id);
+                    table.PrimaryKey("PK_Details", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Detail_Product_ProductId",
+                        name: "FK_Details_Products_ProductId",
                         column: x => x.ProductId,
-                        principalTable: "Product",
+                        principalTable: "Products",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
-                name: "PictureInfo",
+                name: "Pictures",
                 columns: table => new
                 {
                     Id = table.Column<int>(nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     FileName = table.Column<string>(nullable: true),
-                    FileLocation = table.Column<string>(nullable: true),
                     ProductId = table.Column<int>(nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_PictureInfo", x => x.Id);
+                    table.PrimaryKey("PK_Pictures", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_PictureInfo_Product_ProductId",
+                        name: "FK_Pictures_Products_ProductId",
                         column: x => x.ProductId,
-                        principalTable: "Product",
+                        principalTable: "Products",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -317,18 +316,18 @@ namespace API.Migrations
                 filter: "[NormalizedUserName] IS NOT NULL");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Detail_ProductId",
-                table: "Detail",
+                name: "IX_Details_ProductId",
+                table: "Details",
                 column: "ProductId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_PictureInfo_ProductId",
-                table: "PictureInfo",
+                name: "IX_Pictures_ProductId",
+                table: "Pictures",
                 column: "ProductId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Product_UserId",
-                table: "Product",
+                name: "IX_Products_UserId",
+                table: "Products",
                 column: "UserId");
         }
 
@@ -353,10 +352,10 @@ namespace API.Migrations
                 name: "AspNetUserTokens");
 
             migrationBuilder.DropTable(
-                name: "Detail");
+                name: "Details");
 
             migrationBuilder.DropTable(
-                name: "PictureInfo");
+                name: "Pictures");
 
             migrationBuilder.DropTable(
                 name: "Cities");
@@ -365,7 +364,7 @@ namespace API.Migrations
                 name: "AspNetRoles");
 
             migrationBuilder.DropTable(
-                name: "Product");
+                name: "Products");
 
             migrationBuilder.DropTable(
                 name: "AspNetUsers");
