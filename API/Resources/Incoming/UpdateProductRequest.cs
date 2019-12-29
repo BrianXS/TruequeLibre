@@ -27,6 +27,16 @@ namespace API.Resources.Incoming
             public string Content { get; set; }
 
             public string FileType => Content[0].Equals('/') ? ".jpg" : ".png";
+
+            public override bool Equals(object? obj)
+            {
+                return ((PictureDto) obj).Content.Equals(Content);
+            }
+
+            public override int GetHashCode()
+            {
+                return (Name.GetHashCode() + Content.GetHashCode()) * 17;
+            }
         }
         public class DetailDto
         {

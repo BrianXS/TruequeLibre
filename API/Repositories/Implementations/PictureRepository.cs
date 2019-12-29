@@ -1,10 +1,10 @@
 using System.Collections.Generic;
 using System.IO;
 using API.Entities;
-using API.Repositories.Implementations;
+using API.Repositories.Interfaces;
 using API.Services.Database;
 
-namespace API.Repositories.Interfaces
+namespace API.Repositories.Implementations
 {
     public class PictureRepository : IPictureRepository
     {

@@ -1,12 +1,11 @@
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using API.Entities;
-using API.Repositories.Implementations;
+using API.Repositories.Interfaces;
 using API.Services.Database;
 using Microsoft.EntityFrameworkCore;
 
-namespace API.Repositories.Interfaces
+namespace API.Repositories.Implementations
 {
     public class ProductRepository : IProductRepository
     {

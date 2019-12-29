@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using API.Entities;
 
-namespace API.Repositories.Implementations
+namespace API.Repositories.Interfaces
 {
     public interface IPictureRepository
     {

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -13,6 +14,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Internal;
 
 namespace API.Controllers
 {
@@ -24,16 +26,19 @@ namespace API.Controllers
         private readonly IUserRepository _userRepository;
         private readonly IProductRepository _productRepository;
         private readonly IPictureRepository _pictureRepository;
+        private readonly IDetailRepository _detailRepository;
         private readonly IMapper _mapper;
 
         public ProductController(IUserRepository userRepository,
             IProductRepository productRepository,
             IPictureRepository pictureRepository,
+            IDetailRepository detailRepository,
             IMapper mapper)
         {
             _userRepository = userRepository;
             _productRepository = productRepository;
             _pictureRepository = pictureRepository;
+            _detailRepository = detailRepository;
             _mapper = mapper;
         }
 
@@ -98,38 +103,55 @@ namespace API.Controllers
             var userInfo = await _userRepository.FindUserByName(userName);
             var productToUpdate = _productRepository.FindProductById(id);
 
-            if (userInfo == null) return Unauthorized();
+            if (userInfo == null) 
+                return Unauthorized();
             
-            if (productToUpdate == null) return NotFound();
+            if (productToUpdate == null && !userInfo.Id.Equals(productToUpdate.UserId)) 
+                return NotFound();
+
+            if (!ModelState.IsValid) 
+                return BadRequest();
             
-            if (!userInfo.Id.Equals(productToUpdate.UserId)) return Forbid();
-
-            if (!ModelState.IsValid) return BadRequest();
-
-            var remaningPictures = productToUpdate.Pictures
-                .Select(x => _mapper.Map<UpdateProductRequest.PictureDto>(x)).ToList();
-
-            remaningPictures = remaningPictures.Intersect(request.Pictures)
-                .Concat(request.Pictures.Except(remaningPictures)).ToList();
-
             var picturesNotToDelete = productToUpdate.Pictures
-                .Join(remaningPictures,
-                    existing => productToUpdate.Pictures.Select(x => x.FileName.StringToBase64()),
-                    remaining => request.Pictures.Select(x => x.Content),
+                .Join(request.Pictures,
+                    existing => existing.FileName.StringToBase64(),
+                    remaining =>  remaining.Content.DoNothing(),
                     (existing, remaning) => existing).ToList();
             
             if (!picturesNotToDelete.Count.Equals(request.Pictures.Count))
             {
+                var excludePictures = productToUpdate.Pictures
+                    .Select(x => _mapper.Map<UpdateProductRequest.PictureDto>(x)).ToList();
+
                 var picturesToDelete = productToUpdate.Pictures.Except(picturesNotToDelete).ToList();
 
-                var picturesToSave = _mapper.Map<List<PictureInfo>>(request.Pictures);
+                var picturesToSave = _mapper.Map<List<PictureInfo>>(request.Pictures.Where(x => !excludePictures.Contains(x)));
                 picturesToSave.ForEach(x => x.ProductId = productToUpdate.Id);
 
                 _pictureRepository.DeletePictures(picturesToDelete);
                 _pictureRepository.SavePictures(picturesToSave);
                 request.Pictures.ForEach(x => Base64ToFile.ConvertToFile(x.Content, x.Name));
             }
-            
+
+
+            var detailsNotToDelete = productToUpdate.Details
+                .Join(request.Details,
+                    existing => productToUpdate.Details.Select(x => x.Description),
+                    remaining => request.Details.Select(x => x.Description),
+                    (existing, remaining) => existing).ToList();
+
+            if (!detailsNotToDelete.Count.Equals(request.Details.Count))
+            {
+                var excludeDetails = productToUpdate.Details
+                    .Select(x => _mapper.Map<UpdateProductRequest.DetailDto>(x)).ToList();
+                var detailsToDelete = productToUpdate.Details.Except(detailsNotToDelete).ToList();
+                var detailsToSave = _mapper.Map<List<Detail>>(request.Details.Where(x => !excludeDetails.Contains(x)).ToList());
+                detailsToSave.ForEach(x => x.ProductId = productToUpdate.Id);
+                
+                _detailRepository.RemoveRange(detailsToDelete);
+                _detailRepository.AddRange(detailsToSave);
+            }
+
             return Ok();
         }
     }
