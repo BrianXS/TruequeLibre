@@ -3,7 +3,7 @@ using API.Entities;
 
 namespace API.Resources.Outgoing
 {
-    public class EditUserResponse
+    public class UpdateUserResponse
     {
         public string UserName { get; set; }
         public string Email { get; set; }

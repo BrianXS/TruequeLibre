@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading.Tasks;
 using API.Entities;
@@ -9,7 +11,6 @@ using API.Utils;
 using AutoMapper;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -22,24 +23,24 @@ namespace API.Controllers
     {
         private readonly IUserRepository _userRepository;
         private readonly IProductRepository _productRepository;
+        private readonly IPictureRepository _pictureRepository;
         private readonly IMapper _mapper;
-        private readonly IWebHostEnvironment _environment;
 
         public ProductController(IUserRepository userRepository,
-                                 IProductRepository productRepository, 
-                                 IMapper mapper,
-                                 IWebHostEnvironment environment)
+            IProductRepository productRepository,
+            IPictureRepository pictureRepository,
+            IMapper mapper)
         {
             _userRepository = userRepository;
             _productRepository = productRepository;
+            _pictureRepository = pictureRepository;
             _mapper = mapper;
-            _environment = environment;
         }
 
-        [HttpGet("{id}")]
+        [HttpGet("{id}"), AllowAnonymous]
         public ActionResult<GetProductResponse> GetProduct(int id)
         {
-            var response = _mapper.Map<GetProductResponse>(_productRepository.GetProductById(id));
+            var response = _mapper.Map<GetProductResponse>(_productRepository.FindProductById(id));
             if (response == null)
                 return NotFound((GetProductResponse) null);
             
@@ -74,6 +75,61 @@ namespace API.Controllers
                 return BadRequest();
 
             _productRepository.DeleteProduct(id);
+            return Ok();
+        }
+
+        [HttpGet("edit/{id}")]
+        public async Task<ActionResult<UpdateProductResponse>> UpdateProduct(int id)
+        {
+            var userName = HttpContext.User.Identity.Name;
+            var userInfo = await _userRepository.FindUserByName(userName);
+            var response = _mapper.Map<UpdateProductResponse>(_productRepository.FindProductById(id));
+
+            if (userInfo == null || !userInfo.Id.Equals(_productRepository.FindProductById(id).UserId))
+                return Forbid();
+                
+            return Ok(response);
+        }
+
+        [HttpPut("edit/{id}")]
+        public async Task<IActionResult> UpdateProduct(int id, UpdateProductRequest request)
+        {
+            var userName = HttpContext.User.Identity.Name;
+            var userInfo = await _userRepository.FindUserByName(userName);
+            var productToUpdate = _productRepository.FindProductById(id);
+
+            if (userInfo == null) return Unauthorized();
+            
+            if (productToUpdate == null) return NotFound();
+            
+            if (!userInfo.Id.Equals(productToUpdate.UserId)) return Forbid();
+
+            if (!ModelState.IsValid) return BadRequest();
+
+            var remaningPictures = productToUpdate.Pictures
+                .Select(x => _mapper.Map<UpdateProductRequest.PictureDto>(x)).ToList();
+
+            remaningPictures = remaningPictures.Intersect(request.Pictures)
+                .Concat(request.Pictures.Except(remaningPictures)).ToList();
+
+            var picturesNotToDelete = productToUpdate.Pictures
+                .Join(remaningPictures,
+                    existing => productToUpdate.Pictures.Select(x => x.FileName.StringToBase64()),
+                    remaining => request.Pictures.Select(x => x.Content),
+                    (existing, remaning) => existing).ToList();
+            
+            if (!picturesNotToDelete.Count.Equals(request.Pictures.Count))
+            {
+                var picturesToDelete = productToUpdate.Pictures.Except(picturesNotToDelete).ToList();
+
+                var picturesToSave = _mapper.Map<List<PictureInfo>>(request.Pictures);
+                picturesToSave.ForEach(x => x.ProductId = productToUpdate.Id);
+
+                _pictureRepository.DeletePictures(picturesToDelete);
+                _pictureRepository.SavePictures(picturesToSave);
+                request.Pictures.ForEach(x => Base64ToFile.ConvertToFile(x.Content, x.Name));
+            }
+            
             return Ok();
         }
     }

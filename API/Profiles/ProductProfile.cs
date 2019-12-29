@@ -2,6 +2,7 @@ using System.Linq;
 using API.Entities;
 using API.Resources.Incoming;
 using API.Resources.Outgoing;
+using API.Utils;
 using AutoMapper;
 using Microsoft.AspNetCore.Routing.Constraints;
 
@@ -11,6 +12,9 @@ namespace API.Profiles
     {
         public ProductProfile()
         {
+            
+            CreateMap<Product, UpdateProductResponse>();
+            
             CreateMap<AddProductRequest, Product>().ForMember(
                 dest => dest.Details,
                 source => 

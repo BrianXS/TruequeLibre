@@ -11,6 +11,7 @@ namespace API.Profiles
         {
             CreateMap<AddProductRequest.DetailDto, Detail>();
             CreateMap<Detail, GetProductResponse.DetailDto>();
+            CreateMap<Detail, UpdateProductResponse.DetailDto>();
         }
     }
 }

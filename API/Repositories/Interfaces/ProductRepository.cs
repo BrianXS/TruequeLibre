@@ -23,7 +23,7 @@ namespace API.Repositories.Interfaces
             _dbContext.SaveChanges();
         }
 
-        public Product GetProductById(int id)
+        public Product FindProductById(int id)
         {
             var result = _dbContext.Products.Where(x => x.Id == id)
                 .Include(x => x.User)

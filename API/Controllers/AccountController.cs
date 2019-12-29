@@ -66,13 +66,13 @@ namespace API.Controllers
         }
 
         [HttpGet("Update")]
-        public async Task<ActionResult<EditUserResponse>> GetMyProfileInfo()
+        public async Task<ActionResult<UpdateUserResponse>> GetMyProfileInfo()
         {
             var userName = HttpContext.User.Identity.Name;
             var userInfo = await _userRepository.FindUserByName(userName);
             if (userInfo != null)
             {
-                return Ok(_mapper.Map<EditUserResponse>(userInfo));
+                return Ok(_mapper.Map<UpdateUserResponse>(userInfo));
             }
             
             return Unauthorized();

@@ -10,7 +10,21 @@ namespace API.Utils
         public static void ConvertToFile(string image, string fileName)
         {
             var byteBuffer = Convert.FromBase64String(image);
-            File.WriteAllBytes($"{Constants.General.InternalImagesFolder}/{fileName}", byteBuffer);
+            var fileType = image[0].Equals('/') ? ".jpg" : ".png";
+            File.WriteAllBytes($"{Constants.General.InternalImagesFolder}/{fileName}{fileType}", byteBuffer);
+        }
+
+        public static string ConvertToBase64(string name)
+        {
+            var byteBuffer = File.ReadAllBytes($"{Constants.General.InternalImagesFolder}/{name}");
+            return Convert.ToBase64String(byteBuffer);
+        }
+
+        public static string StringToBase64(this string name)
+        {
+            var byteBuffer = File.ReadAllBytes($"{Constants.General.InternalImagesFolder}/{name}");
+            Console.WriteLine(Convert.ToBase64String(byteBuffer));
+            return Convert.ToBase64String(byteBuffer);
         }
     }
 }

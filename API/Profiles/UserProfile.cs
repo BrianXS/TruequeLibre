@@ -11,7 +11,7 @@ namespace API.Profiles
         public UserProfile()
         {
             CreateMap<RegisterRequest, User>();
-            CreateMap<User, EditUserResponse>();
+            CreateMap<User, UpdateUserResponse>();
             CreateMap<User, GetProductResponse.UserDto>();
             
             CreateMap<User, GetProfileResponse>()
