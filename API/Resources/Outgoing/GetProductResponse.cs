@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using API.Entities;
 
 namespace API.Resources.Outgoing
 {
@@ -10,6 +11,7 @@ namespace API.Resources.Outgoing
         public UserDto User { get; set; }
         public List<string> Picutres { get; set; }
         public List<DetailDto> Details { get; set; }
+        public List<QuestionDto> Question { get; set; }
 
         public class UserDto
         {
@@ -23,6 +25,12 @@ namespace API.Resources.Outgoing
         {
             public string Name { get; set; }
             public string Description { get; set; }
+        }
+        
+        public class QuestionDto
+        {
+            public string Question { get; set; }
+            public List<string> Answers { get; set; }
         }
     }
 }

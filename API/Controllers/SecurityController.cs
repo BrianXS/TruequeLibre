@@ -39,6 +39,9 @@ namespace API.Controllers
         [HttpPost("Login")]
         public async Task<ActionResult<LoginResponse>> Login([FromBody] LoginRequest loginRequest)
         {
+            if (!ModelState.IsValid)
+                return Unauthorized();
+            
             var result = await _signInManager.PasswordSignInAsync(loginRequest.UserName,
                 loginRequest.Password, false, false);
 

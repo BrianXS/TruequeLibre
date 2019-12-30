@@ -35,7 +35,7 @@ namespace API
         {
             services.AddDbContext<TruequeLibreDbContext>(options =>
             {
-                options.UseSqlServer(_configuration.GetConnectionString("local"));
+                options.UseSqlServer(_configuration.GetConnectionString("qa"));
                 
             });
 
@@ -70,6 +70,7 @@ namespace API
             services.AddScoped<IProductRepository, ProductRepository>();
             services.AddScoped<IPictureRepository, PictureRepository>();
             services.AddScoped<IDetailRepository, DetailRepository>();
+            services.AddScoped<IQuestionRepository, QuestionRepository>();
         }
         
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)

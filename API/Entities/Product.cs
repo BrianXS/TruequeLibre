@@ -13,5 +13,6 @@ namespace API.Entities
 
         public List<PictureInfo> Pictures { get; set; }
         public List<Detail> Details { get; set; }
+        public List<Question> Questions { get; set; }
     }
 }

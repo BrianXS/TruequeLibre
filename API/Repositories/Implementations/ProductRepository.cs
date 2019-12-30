@@ -27,7 +27,8 @@ namespace API.Repositories.Implementations
             var result = _dbContext.Products.Where(x => x.Id == id)
                 .Include(x => x.User)
                 .Include(x => x.Pictures)
-                .Include(x => x.Details);
+                .Include(x => x.Details)
+                .Include(x => x.Questions);
             
             return result.FirstOrDefault();
         }
