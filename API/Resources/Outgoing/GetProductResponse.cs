@@ -11,7 +11,7 @@ namespace API.Resources.Outgoing
         public UserDto User { get; set; }
         public List<string> Picutres { get; set; }
         public List<DetailDto> Details { get; set; }
-        public List<QuestionDto> Question { get; set; }
+        public List<QuestionDto> Questions { get; set; }
 
         public class UserDto
         {
@@ -30,7 +30,7 @@ namespace API.Resources.Outgoing
         public class QuestionDto
         {
             public string Question { get; set; }
-            public List<string> Answers { get; set; }
+            public string Answer { get; set; }
         }
     }
 }

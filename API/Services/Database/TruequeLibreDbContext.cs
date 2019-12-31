@@ -18,6 +18,5 @@ namespace API.Services.Database
         public DbSet<PictureInfo> Pictures { get; set; }
 
         public DbSet<Question> Questions { get; set; }
-        public DbSet<Answer> Answers { get; set; }
     }
 }

@@ -1,5 +1,6 @@
 using API.Entities;
 using API.Resources.Incoming;
+using API.Resources.Outgoing;
 using AutoMapper;
 
 namespace API.Profiles
@@ -9,6 +10,10 @@ namespace API.Profiles
         public QuestionProfile()
         {
             CreateMap<AddQuestionToProduct, Question>();
+            CreateMap<Question, GetProductResponse.QuestionDto>().ForMember(
+                destination => destination.Question,
+                source => 
+                    source.MapFrom(src => src.Body));
         }
     }
 }

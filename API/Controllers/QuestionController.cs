@@ -1,4 +1,5 @@
 using System.Net;
+using System.Threading.Tasks;
 using API.Entities;
 using API.Repositories.Interfaces;
 using API.Resources.Incoming;
@@ -10,7 +11,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace API.Controllers
 {
     [ApiController]
-    [Route("[controller]")]
+    [Route("Product/{productId}/[controller]")]
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     public class QuestionController : ControllerBase
     {
@@ -30,12 +31,12 @@ namespace API.Controllers
             _mapper = mapper;
         }
 
-        [HttpPost("{id}")]
-        public IActionResult AddQuestionToProduct(int id, AddQuestionToProduct request)
+        [HttpPost]
+        public async Task<IActionResult> AddQuestionToProduct([FromRoute] int productId, AddQuestionToProduct request)
         {
             var userName = HttpContext.User.Identity.Name;
-            var userInfo = _userRepository.FindUserByName(userName);
-            var product = _productRepository.FindProductById(id);
+            var userInfo = await _userRepository.FindUserByName(userName);
+            var product = _productRepository.FindProductById(productId);
 
             if (userInfo == null)
                 return Unauthorized();
@@ -52,8 +53,25 @@ namespace API.Controllers
 
             var question = _mapper.Map<Question>(request);
             question.ProductId = product.Id;
+            question.UserId = userInfo.Id;
             _questionRepository.AddQuestion(question);
             return Ok();
         }
+
+        [HttpPost("{questionId}")]
+        public async Task<IActionResult> AnswerQuestion(int questionId)
+        {
+            var userName = HttpContext.User.Identity.Name;
+            var userInfo = await _userRepository.FindUserByName(userName);
+            var question = _questionRepository.FindQuestionById(questionId);
+
+            if (userInfo == null)
+                return Unauthorized();
+
+            if (userInfo.Id == question.UserId || !string.IsNullOrEmpty(question.Answer))
+                return UnprocessableEntity();
+
+            return Ok();
+        } 
     }
 }

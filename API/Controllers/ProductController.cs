@@ -64,7 +64,8 @@ namespace API.Controllers
             var result = _mapper.Map<Product>(request);
             result.UserId = userInfo.Id;
             if (request.Pictures.Any())
-                request.Pictures.ForEach(x => Base64ToFile.ConvertToFile(x.Content, x.Name));
+                request.Pictures.ForEach(x => 
+                    Base64ToFile.ConvertToFile(x.Content, x.Name));
             
             _productRepository.SaveProduct(result);
             return Ok();
@@ -114,8 +115,8 @@ namespace API.Controllers
             
             var picturesNotToDelete = productToUpdate.Pictures
                 .Join(request.Pictures,
-                    existing => existing.FileName.StringToBase64(),
-                    remaining =>  remaining.Content.DoNothing(),
+                    existing => Base64ToFile.ConvertToBase64(existing.FileName),
+                    remaining =>  remaining.Content,
                     (existing, remaning) => existing).ToList();
             
             if (!picturesNotToDelete.Count.Equals(request.Pictures.Count))

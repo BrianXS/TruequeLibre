@@ -35,7 +35,7 @@ namespace API
         {
             services.AddDbContext<TruequeLibreDbContext>(options =>
             {
-                options.UseSqlServer(_configuration.GetConnectionString("qa"));
+                options.UseSqlServer(_configuration.GetConnectionString("local"));
                 
             });
 

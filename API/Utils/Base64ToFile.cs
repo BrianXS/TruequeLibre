@@ -19,19 +19,5 @@ namespace API.Utils
             var byteBuffer = File.ReadAllBytes($"{Constants.General.InternalImagesFolder}/{name}");
             return Convert.ToBase64String(byteBuffer);
         }
-
-        public static string StringToBase64(this string name)
-        {
-            Console.WriteLine(name);
-            var byteBuffer = File.ReadAllBytes($"{Constants.General.InternalImagesFolder}/{name}");
-            Console.WriteLine(Convert.ToBase64String(byteBuffer));
-            return Convert.ToBase64String(byteBuffer);
-        }
-        
-        public static string DoNothing(this string value)
-        {
-            Console.WriteLine(value);
-            return value;
-        }
     }
 }
