@@ -59,19 +59,44 @@ namespace API.Controllers
         }
 
         [HttpPost("{questionId}")]
-        public async Task<IActionResult> AnswerQuestion(int questionId)
+        public async Task<IActionResult> AnswerQuestion(int questionId, AddAnswerRequest request)
         {
             var userName = HttpContext.User.Identity.Name;
             var userInfo = await _userRepository.FindUserByName(userName);
+            var question = _questionRepository.FindQuestionById(questionId);
+            
+            if (question == null) 
+                return NotFound();
+
+            if (userInfo == null || !userInfo.Id.Equals(question.Product.UserId))
+                return Unauthorized();
+
+            if (!string.IsNullOrEmpty(question.Answer))
+                return UnprocessableEntity();
+
+            question.Answer = request.Answer;
+            _questionRepository.UpdateQuestion(question);
+            return Ok();
+        }
+
+        [HttpDelete("{questionId}")]
+        public async Task<IActionResult> DeleteQuestion(int questionId)
+        {
+            var username = HttpContext.User.Identity.Name;
+            var userInfo = await _userRepository.FindUserByName(username);
             var question = _questionRepository.FindQuestionById(questionId);
 
             if (userInfo == null)
                 return Unauthorized();
 
-            if (userInfo.Id == question.UserId || !string.IsNullOrEmpty(question.Answer))
-                return UnprocessableEntity();
+            if (question == null)
+                return NotFound();
 
+            if (!question.UserId.Equals(userInfo.Id) && !question.Product.UserId.Equals(userInfo.Id))
+                return UnprocessableEntity();
+            
+            _questionRepository.DeleteQuestionById(questionId);
             return Ok();
-        } 
+        }
     }
 }

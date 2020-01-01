@@ -71,8 +71,8 @@ namespace API.Controllers
             return Ok();
         }
 
-        [HttpDelete("delete/{id}")]
-        public async Task<IActionResult> DeleteProduct(int id)
+        [HttpDelete("{productId}")]
+        public async Task<IActionResult> DeleteProduct(int productId)
         {
             var userName = HttpContext.User.Identity.Name;
             var userInfo = await _userRepository.FindUserByName(userName);
@@ -80,7 +80,7 @@ namespace API.Controllers
             if (userInfo == null)
                 return BadRequest();
 
-            _productRepository.DeleteProduct(id);
+            _productRepository.DeleteProduct(productId);
             return Ok();
         }
 

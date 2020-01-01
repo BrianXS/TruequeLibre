@@ -28,7 +28,7 @@ namespace API.Controllers
             _mapper = mapper;
         }
 
-        [HttpPost("Add")]
+        [HttpPost]
         public async Task<IActionResult> AddAddress(AddAddressRequest request)
         {
             var userName = HttpContext.User.Identity.Name;
@@ -47,10 +47,10 @@ namespace API.Controllers
             return Ok();
         }
         
-        [HttpGet("{id}")]
-        public async Task<ActionResult<GetAddressResponse>> GetAddressInfo(int id)
+        [HttpGet("{addressId}")]
+        public async Task<ActionResult<GetAddressResponse>> GetAddressInfo(int addressId)
         {
-            var address = _addressRepository.GetAddressWithCity(id);
+            var address = _addressRepository.GetAddressWithCity(addressId);
             var userName = HttpContext.User.Identity.Name;
             var userInfo = await _userRepository.FindUserByName(userName);
             
@@ -61,7 +61,7 @@ namespace API.Controllers
             return Ok(response);
         }
         
-        [HttpPost("Update")]
+        [HttpPut]
         public IActionResult UpdateAddress(UpdateAddressRequest request)
         {
             var userName = HttpContext.User.Identity.Name;
@@ -80,16 +80,16 @@ namespace API.Controllers
             return Ok();
         }
         
-        [HttpDelete("Delete/{id}")]
-        public async Task<IActionResult> DeleteAddress(int id)
+        [HttpDelete("{addressId}")]
+        public async Task<IActionResult> DeleteAddress(int addressId)
         {
             var userName = HttpContext.User.Identity.Name;
             var userInfo = await _userRepository.FindUserByName(userName);
 
-            if (userInfo == null || _addressRepository.GetAddress(id).UserId != userInfo.Id)
+            if (userInfo == null || _addressRepository.GetAddress(addressId).UserId != userInfo.Id)
                 return Unauthorized();
 
-            _addressRepository.DeleteAddress(id);
+            _addressRepository.DeleteAddress(addressId);
             return Ok();
         }
     }
