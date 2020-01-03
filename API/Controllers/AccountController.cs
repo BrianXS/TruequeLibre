@@ -1,11 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
-using System.Runtime.InteropServices;
 using System.Security.Claims;
 using System.Threading.Tasks;
-using API.Entities;
 using API.Repositories.Interfaces;
 using API.Resources.Incoming;
 using API.Resources.Outgoing;
@@ -13,7 +10,6 @@ using API.Utils;
 using AutoMapper;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.JsonWebTokens;
 

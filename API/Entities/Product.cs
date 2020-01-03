@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace API.Entities
 {
@@ -14,5 +15,11 @@ namespace API.Entities
         public List<PictureInfo> Pictures { get; set; }
         public List<Detail> Details { get; set; }
         public List<Question> Questions { get; set; }
+
+        [InverseProperty("ReceiverProduct")]
+        public List<Offer> IncomingOffers { get; set; }
+        
+        [InverseProperty("OfferedProduct")]
+        public List<Offer> OutcomingOffers { get; set; }
     }
 }

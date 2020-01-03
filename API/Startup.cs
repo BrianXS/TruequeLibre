@@ -8,6 +8,7 @@ using API.Repositories.Implementations;
 using API.Repositories.Interfaces;
 using API.Services.Database;
 using API.Services.Email;
+using API.Utils;
 using AutoMapper;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Configuration;
@@ -56,7 +57,7 @@ namespace API
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 .AddJwtBearer(options =>
                 {
-                    options.TokenValidationParameters = Shared.TokenParameters.GetParameters();
+                    options.TokenValidationParameters = TokenParameters.GetParameters();
                 });
 
             services.AddRouting(options => { options.LowercaseUrls = true; });
@@ -71,6 +72,7 @@ namespace API
             services.AddScoped<IPictureRepository, PictureRepository>();
             services.AddScoped<IDetailRepository, DetailRepository>();
             services.AddScoped<IQuestionRepository, QuestionRepository>();
+            services.AddScoped<IOfferRepository, OfferRepository>();
         }
         
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
