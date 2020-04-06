@@ -47,7 +47,7 @@ namespace API.Controllers
 
             if (result.Succeeded)
             {
-                var userInfo = await _userRepository.FindUserByName(loginRequest.UserName);
+                var userInfo = await _userRepository.FindUserByUsername(loginRequest.UserName);
                 var userRoles = await _userRepository.GetUserRoles(userInfo);
 
                 await _userRepository.UpdateRefreshToken(userInfo, TokenUtils.RefreshToken());
@@ -76,7 +76,7 @@ namespace API.Controllers
         {
             var principal = TokenUtils.GetClaims(refreshToken.OldToken);
             var userName = principal.Identity.Name;
-            var userInfo = await _userRepository.FindUserByName(userName);
+            var userInfo = await _userRepository.FindUserByUsername(userName);
             
             if(string.IsNullOrWhiteSpace(userName) || userInfo == null)
                 return BadRequest(new RefreshTokenResponse());
@@ -118,7 +118,7 @@ namespace API.Controllers
         [HttpPost("RecoverPassword")]
         public async Task<IActionResult> RecoverPassword([FromBody] RecoverPasswordRequest recoverPasswordRequest)
         {
-            var user = await _userRepository.FindUserByName(recoverPasswordRequest.UserName);
+            var user = await _userRepository.FindUserByUsername(recoverPasswordRequest.UserName);
             if (user != null)
             {
                 var token = await _userRepository.GeneratePasswordResetTokenAsync(user);
@@ -138,7 +138,7 @@ namespace API.Controllers
             if (!ModelState.IsValid)
                 return BadRequest();
 
-            var user = await _userRepository.FindUserByName(changePasswordRequest.UserName);
+            var user = await _userRepository.FindUserByUsername(changePasswordRequest.UserName);
             
             if (user == null)
                 return BadRequest();

@@ -13,7 +13,7 @@ namespace API.Profiles
             CreateMap<Address, GetAddressResponse>();
             CreateMap<UpdateAddressRequest, Address>();
             
-            CreateMap<Address, GetProfileResponse.AddressInfo>().ForMember(
+            CreateMap<Address, ProfileResponse.AddressInfo>().ForMember(
                 destination => destination.CityName,
                 source => 
                     source.MapFrom(src => src.City.Name));

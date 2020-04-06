@@ -8,6 +8,7 @@ using API.Repositories.Implementations;
 using API.Repositories.Interfaces;
 using API.Resources.Incoming;
 using API.Resources.Outgoing;
+using API.Services.User;
 using API.Utils;
 using AutoMapper;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -27,18 +28,21 @@ namespace API.Controllers
         private readonly IProductRepository _productRepository;
         private readonly IPictureRepository _pictureRepository;
         private readonly IDetailRepository _detailRepository;
+        private readonly ICurrentUserInfo _currentUserInfo;
         private readonly IMapper _mapper;
 
         public ProductController(IUserRepository userRepository,
             IProductRepository productRepository,
             IPictureRepository pictureRepository,
             IDetailRepository detailRepository,
+            ICurrentUserInfo currentUserInfo,
             IMapper mapper)
         {
             _userRepository = userRepository;
             _productRepository = productRepository;
             _pictureRepository = pictureRepository;
             _detailRepository = detailRepository;
+            _currentUserInfo = currentUserInfo;
             _mapper = mapper;
         }
 
@@ -47,7 +51,7 @@ namespace API.Controllers
         {
             var response = _mapper.Map<GetProductResponse>(_productRepository.FindProductById(id));
             if (response == null)
-                return NotFound((GetProductResponse) null);
+                return NotFound(null);
             
             return Ok(response);
         }
@@ -55,8 +59,7 @@ namespace API.Controllers
         [HttpPost]
         public async Task<IActionResult> AddProduct(AddProductRequest request)
         {
-            var userName = HttpContext.User.Identity.Name;
-            var userInfo = await _userRepository.FindUserByName(userName);
+            var userInfo = await _currentUserInfo.GetCurrentUser();
             
             if (!ModelState.IsValid || userInfo == null)
                 return BadRequest();
@@ -72,14 +75,8 @@ namespace API.Controllers
         }
 
         [HttpDelete("{productId}")]
-        public async Task<IActionResult> DeleteProduct(int productId)
+        public IActionResult DeleteProduct(int productId)
         {
-            var userName = HttpContext.User.Identity.Name;
-            var userInfo = await _userRepository.FindUserByName(userName);
-
-            if (userInfo == null)
-                return BadRequest();
-
             _productRepository.DeleteProduct(productId);
             return Ok();
         }
@@ -87,8 +84,7 @@ namespace API.Controllers
         [HttpGet("edit/{id}")]
         public async Task<ActionResult<UpdateProductResponse>> UpdateProduct(int id)
         {
-            var userName = HttpContext.User.Identity.Name;
-            var userInfo = await _userRepository.FindUserByName(userName);
+            var userInfo = await _currentUserInfo.GetCurrentUser();
             var response = _mapper.Map<UpdateProductResponse>(_productRepository.FindProductById(id));
 
             if (userInfo == null || !userInfo.Id.Equals(_productRepository.FindProductById(id).UserId))
@@ -100,14 +96,13 @@ namespace API.Controllers
         [HttpPut("edit/{id}")]
         public async Task<IActionResult> UpdateProduct(int id, UpdateProductRequest request)
         {
-            var userName = HttpContext.User.Identity.Name;
-            var userInfo = await _userRepository.FindUserByName(userName);
+            var userInfo = await _currentUserInfo.GetCurrentUser();
             var productToUpdate = _productRepository.FindProductById(id);
 
             if (userInfo == null) 
                 return Unauthorized();
             
-            if (productToUpdate == null && !userInfo.Id.Equals(productToUpdate.UserId)) 
+            if (productToUpdate == null || !userInfo.Id.Equals(productToUpdate.UserId)) 
                 return NotFound();
 
             if (!ModelState.IsValid) 

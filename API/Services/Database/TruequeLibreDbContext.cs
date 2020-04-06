@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace API.Services.Database
 {
-    public class TruequeLibreDbContext : IdentityDbContext<User, Role, int>
+    public class TruequeLibreDbContext : IdentityDbContext<Entities.User, Role, int>
     {
         public TruequeLibreDbContext(DbContextOptions options) : base(options) { }
 

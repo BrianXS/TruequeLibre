@@ -7,7 +7,7 @@ namespace API.Services.Database
 {
     public class SeedData
     {
-        public static async Task InitializeMethods(UserManager<User> userManager, RoleManager<Role> roleManager)
+        public static async Task InitializeMethods(UserManager<Entities.User> userManager, RoleManager<Role> roleManager)
         {
             if (!roleManager.Roles.Any())
                 await InitializeRoles(roleManager);
@@ -16,9 +16,9 @@ namespace API.Services.Database
                 await InitializeUsers(userManager);
         }
 
-        private static async Task InitializeUsers(UserManager<User> userManager)
+        private static async Task InitializeUsers(UserManager<Entities.User> userManager)
         {
-            var user = new User
+            var user = new Entities.User
             {
                 UserName = "trocador",
                 Email = "trocador@truquelibre.com.mx",

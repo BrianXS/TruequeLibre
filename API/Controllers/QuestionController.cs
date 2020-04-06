@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using API.Entities;
 using API.Repositories.Interfaces;
 using API.Resources.Incoming;
+using API.Services.User;
 using AutoMapper;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
@@ -18,28 +19,27 @@ namespace API.Controllers
         private readonly IUserRepository _userRepository;
         private readonly IProductRepository _productRepository;
         private readonly IQuestionRepository _questionRepository;
+        private readonly ICurrentUserInfo _currentUserInfo;
         private readonly IMapper _mapper;
 
         public QuestionController(IUserRepository userRepository,
                                 IProductRepository productRepository,
                                 IQuestionRepository questionRepository,
+                                ICurrentUserInfo currentUserInfo,
                                 IMapper mapper)
         {
             _userRepository = userRepository;
             _productRepository = productRepository;
             _questionRepository = questionRepository;
+            _currentUserInfo = currentUserInfo;
             _mapper = mapper;
         }
 
         [HttpPost]
         public async Task<IActionResult> AddQuestionToProduct([FromRoute] int productId, AddQuestionToProduct request)
         {
-            var userName = HttpContext.User.Identity.Name;
-            var userInfo = await _userRepository.FindUserByName(userName);
+            var userInfo = await _currentUserInfo.GetCurrentUser();
             var product = _productRepository.FindProductById(productId);
-
-            if (userInfo == null)
-                return Unauthorized();
 
             if (!ModelState.IsValid)
                 return BadRequest();
@@ -49,8 +49,7 @@ namespace API.Controllers
 
             if (product.UserId == userInfo.Id)
                 return Forbid();
-
-
+            
             var question = _mapper.Map<Question>(request);
             question.ProductId = product.Id;
             question.UserId = userInfo.Id;
@@ -61,8 +60,7 @@ namespace API.Controllers
         [HttpPost("{questionId}")]
         public async Task<IActionResult> AnswerQuestion(int questionId, AddAnswerRequest request)
         {
-            var userName = HttpContext.User.Identity.Name;
-            var userInfo = await _userRepository.FindUserByName(userName);
+            var userInfo = await _currentUserInfo.GetCurrentUser();
             var question = _questionRepository.FindQuestionById(questionId);
             
             if (question == null) 
@@ -82,13 +80,9 @@ namespace API.Controllers
         [HttpDelete("{questionId}")]
         public async Task<IActionResult> DeleteQuestion(int questionId)
         {
-            var username = HttpContext.User.Identity.Name;
-            var userInfo = await _userRepository.FindUserByName(username);
+            var userInfo = await _currentUserInfo.GetCurrentUser();
             var question = _questionRepository.FindQuestionById(questionId);
-
-            if (userInfo == null)
-                return Unauthorized();
-
+            
             if (question == null)
                 return NotFound();
 

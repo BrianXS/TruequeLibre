@@ -20,7 +20,7 @@ namespace API.Profiles
                 source => 
                     source.MapFrom(src => src.Details));
 
-            CreateMap<Product, GetProfileResponse.ProductInfo>().ForMember(
+            CreateMap<Product, ProfileResponse.ProductInfo>().ForMember(
                 destination => destination.ProductPictures,
                 entity => 
                     entity.MapFrom(src => src.Pictures.Select(picture => picture.FilePath).ToList()));

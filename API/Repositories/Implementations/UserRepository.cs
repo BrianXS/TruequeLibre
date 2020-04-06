@@ -5,7 +5,11 @@ using API.Entities;
 using API.Repositories.Interfaces;
 using API.Resources.Outgoing;
 using API.Services.Database;
+using API.Services.User;
+using AutoMapper;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace API.Repositories.Implementations
 {
@@ -15,30 +19,45 @@ namespace API.Repositories.Implementations
         private readonly TruequeLibreDbContext _dbContext;
         private readonly IAddressRepository _addressRepository;
         private readonly IProductRepository _productRepository;
+        private readonly IMapper _mapper;
 
         public UserRepository(UserManager<User> userManager,
                               TruequeLibreDbContext dbContext,
                               IAddressRepository addressRepository,
-                              IProductRepository productRepository)
+                              IProductRepository productRepository,
+                              IMapper mapper)
         {
             _userManager = userManager;
             _dbContext = dbContext;
             _addressRepository = addressRepository;
             _productRepository = productRepository;
-        }
-        
-        public async Task<User> FindUserByName(string userName)
-        {
-            return await _userManager.FindByNameAsync(userName);
+            _mapper = mapper;
         }
 
+        public async Task<User> FindUserByUsername(string username = "")
+        {
+            return await _userManager.FindByNameAsync(username);
+        }
+        
         public async Task<User> FindUserById(int id)
         {
-            var result = await _userManager.FindByIdAsync(id.ToString());
-            result.Addresses = _addressRepository.GetUserAddresses(result.Id);
-            result.Products = _productRepository.GetUserProducts(result.Id);
-            
-            return result;
+            return await _userManager.FindByIdAsync(id.ToString());
+        }
+
+        public ProfileResponse FindProfileResponseByName(string userName)
+        {
+            var result = _userManager.Users.FirstOrDefault(x => x.UserName == userName);
+            return _mapper.Map<ProfileResponse>(result);
+        }
+
+        public ProfileResponse FindProfileResponseById(int id)
+        {
+            var result = _userManager.Users
+                .Include(x => x.Addresses)
+                .Include(x => x.Products)
+                .FirstOrDefault(x => x.Id.Equals(id));
+
+            return _mapper.Map<ProfileResponse>(result);
         }
 
         public async Task UpdateName(User user, string names, string lastnames)

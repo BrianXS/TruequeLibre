@@ -1,14 +1,18 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using API.Entities;
+using API.Resources.Outgoing;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 
 namespace API.Repositories.Interfaces
 {
     public interface IUserRepository
-    { 
-        Task<User> FindUserByName(string userName);
+    {
         Task<User> FindUserById(int id);
+        Task<User> FindUserByUsername(string username);
+        ProfileResponse FindProfileResponseByName(string userName);
+        ProfileResponse FindProfileResponseById(int id);
         Task UpdateName(User user, string names, string lastnames);
         Task UpdateEmail(User user, string email);
         Task<bool> UpdatePassword(User user, string oldPassword, string newPassword);

@@ -14,7 +14,7 @@ namespace API.Profiles
             CreateMap<User, UpdateUserResponse>();
             CreateMap<User, GetProductResponse.UserDto>();
             
-            CreateMap<User, GetProfileResponse>()
+            CreateMap<User, ProfileResponse>()
                 .ForMember(destination => destination.FullName,
                     source => 
                         source.MapFrom(user => $"{user.Names} {user.LastNames}"))

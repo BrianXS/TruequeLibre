@@ -1,7 +1,7 @@
 using System.Threading.Tasks;
 using API.Entities;
 using API.Repositories.Interfaces;
-using AutoMapper;
+using API.Services.User;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -16,36 +16,32 @@ namespace API.Controllers
         private readonly IUserRepository _userRepository;
         private readonly IProductRepository _productRepository;
         private readonly IOfferRepository _offerRepository;
-        private readonly IMapper _mapper;
+        private readonly ICurrentUserInfo _currentUserInfo;
 
         public OfferController(IUserRepository userRepository,
                                IProductRepository productRepository,
                                IOfferRepository offerRepository,
-                               IMapper mapper)
+                               ICurrentUserInfo currentUserInfo)
         {
             _userRepository = userRepository;
             _productRepository = productRepository;
             _offerRepository = offerRepository;
-            _mapper = mapper;
+            _currentUserInfo = currentUserInfo;
         }
 
 
         [HttpPost("{productToOfferId}")]
         public async Task<IActionResult> AddOffer([FromRoute] int productId, int productToOfferId)
         {
-            var userName = HttpContext.User.Identity.Name;
-            var userInfo = await _userRepository.FindUserByName(userName);
+            var userId = await _currentUserInfo.GetCurrentUserId();
 
             var product = _productRepository.FindProductById(productId);
             var productToOffer = _productRepository.FindProductById(productToOfferId);
 
-            if (userInfo == null)
-                return Unauthorized();
-
             if (product == null || productToOffer == null)
                 return NotFound();
 
-            if (product.UserId.Equals(userInfo.Id) || !productToOffer.UserId.Equals(userInfo.Id))
+            if (product.UserId.Equals(userId) || !productToOffer.UserId.Equals(userId))
                 return BadRequest();
             
             var offer = new Offer { OfferedProductId = productToOfferId, ReceiverProductId = productId};

@@ -3,7 +3,7 @@ using API.Entities;
 
 namespace API.Resources.Outgoing
 {
-    public class GetProfileResponse
+    public class ProfileResponse
     {
         public string UserName { get; set; }
         public string FullName { get; set; }

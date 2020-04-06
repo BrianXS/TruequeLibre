@@ -8,6 +8,7 @@ using API.Repositories.Implementations;
 using API.Repositories.Interfaces;
 using API.Services.Database;
 using API.Services.Email;
+using API.Services.User;
 using API.Utils;
 using AutoMapper;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -64,6 +65,9 @@ namespace API
             services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
             services.AddTransient<IEmailSender, EmailSender>();
             services.AddControllers();
+
+            services.AddScoped<ICurrentUserInfo, CurrentUserInfo>();
+            services.AddScoped<IHttpContextAccessor, HttpContextAccessor>();
             
             //Repositories
             services.AddScoped<IUserRepository, UserRepository>();

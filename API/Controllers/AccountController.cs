@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using API.Repositories.Interfaces;
 using API.Resources.Incoming;
 using API.Resources.Outgoing;
+using API.Services.User;
 using API.Utils;
 using AutoMapper;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -21,64 +22,58 @@ namespace API.Controllers
     public class AccountController : ControllerBase
     {
         private readonly IUserRepository _userRepository;
-        private readonly IAddressRepository _addressRepository;
+        private readonly ICurrentUserInfo _currentUserInfo;
         private readonly IMapper _mapper;
 
         public AccountController(IUserRepository userRepository,
-                                 IAddressRepository addressRepository,
+                                 ICurrentUserInfo currentUserInfo,
                                  IMapper mapper)
         {
             _userRepository = userRepository;
-            _addressRepository = addressRepository;
+            _currentUserInfo = currentUserInfo;
             _mapper = mapper;
         }
 
         [HttpGet]
-        public async Task<ActionResult<GetProfileResponse>> GetMyProfile()
+        public ActionResult<ProfileResponse> GetMyProfile()
         {
-            var userName = HttpContext.User.Identity.Name;
-            var userInfo = await _userRepository.FindUserByName(userName);
-            if (userInfo != null)
-            {
-                var response = _mapper.Map<GetProfileResponse>(userInfo);
-                return Ok(response);
-            }
-
-            return Unauthorized();
+            
+            var userInfo = _currentUserInfo.GetCurrentUserResource();
+            if (userInfo != null) 
+                return Ok(userInfo);
+            
+            return NotFound();
         }
 
         [HttpGet("{id}"), AllowAnonymous]
-        public async Task<ActionResult<GetProfileResponse>> GetProfile(int id)
+        public ActionResult<ProfileResponse> GetProfile(int id)
         {
-            var userInfo = await _userRepository.FindUserById(id);
+            var userInfo = _userRepository.FindProfileResponseById(id);
             
             if (userInfo != null)
             {
-                var response = _mapper.Map<GetProfileResponse>(userInfo);
+                var response = _mapper.Map<ProfileResponse>(userInfo);
                 return Ok(response);
             }
             
-            return NotFound(new GetProfileResponse());
+            return NotFound();
         }
 
         [HttpGet("Update")]
-        public async Task<ActionResult<UpdateUserResponse>> GetMyProfileInfo()
+        public ActionResult<UpdateUserResponse> GetMyProfileInfo()
         {
-            var userName = HttpContext.User.Identity.Name;
-            var userInfo = await _userRepository.FindUserByName(userName);
-            if (userInfo != null)
-            {
-                return Ok(_mapper.Map<UpdateUserResponse>(userInfo));
-            }
-            
-            return Unauthorized();
+            var userInfo = _currentUserInfo.GetCurrentUserUpdateResource();
+
+            if (userInfo != null) 
+                return Ok(userInfo);
+
+            return NotFound();
         }
 
         [HttpPost("Update/Username")]
         public async Task<ActionResult<UpdateUserUserNameResponse>> UpdateUserName(UpdateUserUserNameRequest request)
         {
-            var userName = HttpContext.User.Identity.Name;
-            var userInfo = await _userRepository.FindUserByName(userName);
+            var userInfo = await _currentUserInfo.GetCurrentUser();
             if (userInfo != null)
             {
                 await _userRepository.UpdateUserName(userInfo, request.UserName);
@@ -106,10 +101,10 @@ namespace API.Controllers
         [HttpPost("Update/Email")]
         public async Task<IActionResult> EditEmail(UpdateUserEmailRequest request)
         {
-            if (!ModelState.IsValid) return BadRequest();
+            if (!ModelState.IsValid) 
+                return BadRequest();
             
-            var userName = HttpContext.User.Identity.Name;
-            var userInfo = await _userRepository.FindUserByName(userName);
+            var userInfo = await _currentUserInfo.GetCurrentUser();
             if (userInfo != null)
             {
                 await _userRepository.UpdateEmail(userInfo, request.Email);
@@ -122,10 +117,11 @@ namespace API.Controllers
         [HttpPost("Update/Name")]
         public async Task<IActionResult> UpdateName(UpdateUserNameRequest request)
         {
-            if (!ModelState.IsValid) return BadRequest();
+            var userInfo = await _currentUserInfo.GetCurrentUser();
             
-            var userName = HttpContext.User.Identity.Name;
-            var userInfo = await _userRepository.FindUserByName(userName);
+            if (!ModelState.IsValid) 
+                return BadRequest();
+            
             if (userInfo != null)
             {
                 await _userRepository.UpdateName(userInfo, request.Names, request.LastNames);
@@ -138,10 +134,11 @@ namespace API.Controllers
         [HttpPost("Update/PhoneNumber")]
         public async Task<IActionResult> UpdatePhoneNumber(UpdateUserPhoneNumberRequest request)
         {
-            if (!ModelState.IsValid) return BadRequest();
+            var userInfo = await _currentUserInfo.GetCurrentUser();
             
-            var userName = HttpContext.User.Identity.Name;
-            var userInfo = await _userRepository.FindUserByName(userName);
+            if (!ModelState.IsValid) 
+                return BadRequest();
+            
             if (userInfo != null)
             {
                 await _userRepository.UpdateUserPhone(userInfo, request.PhoneNumber);
@@ -154,10 +151,11 @@ namespace API.Controllers
         [HttpPost("Update/Password")]
         public async Task<IActionResult> UpdatePassword(UpdateUserPasswordRequest request)
         {
-            if (!ModelState.IsValid) return BadRequest();
+            var userInfo = await _currentUserInfo.GetCurrentUser();
             
-            var userName = HttpContext.User.Identity.Name;
-            var userInfo = await _userRepository.FindUserByName(userName);
+            if (!ModelState.IsValid) 
+                return BadRequest();
+            
             if (userInfo != null)
             {
                 var result = await _userRepository.UpdatePassword(userInfo, request.OldPassword, request.NewPassword);
